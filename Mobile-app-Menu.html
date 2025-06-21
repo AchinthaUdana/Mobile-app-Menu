@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus Navigation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Dark Theme Variables */
+        :root {
+            --bg: #121212;
+            --surface: #1e1e1e;
+            --primary: #bb86fc;
+            --primary-variant: #3700b3;
+            --secondary: #03dac6;
+            --error: #cf6679;
+            --on-bg: #e1e1e1;
+            --on-surface: #ffffff;
+            --on-primary: #000000;
+            --on-secondary: #000000;
+            --on-error: #000000;
+        }
+
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--on-bg);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* App Container */
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--bg);
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 20px;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--on-surface);
+        }
+
+        .card-text {
+            color: var(--on-bg);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Advanced Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 480px;
+            height: 80px;
+            background: var(--surface);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 100;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--on-bg);
+            font-size: 0.7rem;
+            width: 60px;
+            height: 100%;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .nav-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: transparent;
+            margin-bottom: 2px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1;
+        }
+
+        .nav-item i {
+            font-size: 1.4rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .nav-label {
+            position: absolute;
+            bottom: 12px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-weight: 500;
+        }
+
+        /* Active State */
+        .nav-item.active {
+            transform: translateY(-10px);
+        }
+
+        .nav-item.active .nav-icon {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 8px 20px rgba(187, 134, 252, 0.3);
+            transform: translateY(-20px) scale(1.1);
+            animation: pulse 2s infinite;
+        }
+
+        .nav-item.active i {
+            color: var(--on-primary);
+            font-size: 1.5rem;
+            transform: translateY(-5px);
+        }
+
+        .nav-item.active .nav-label {
+            opacity: 1;
+            transform: translateY(0);
+            color: var(--primary);
+        }
+
+        /* Ripple Effect */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(187, 134, 252, 0.3);
+            transform: scale(0);
+            pointer-events: none;
+            animation: ripple 0.6s linear;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--on-primary);
+            font-size: 1.6rem;
+            box-shadow: 0 8px 25px rgba(187, 134, 252, 0.4);
+            z-index: 90;
+            cursor: pointer;
+            transition: all 0.3s;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .fab:active {
+            transform: translateX(-50%) scale(0.95);
+            box-shadow: 0 4px 15px rgba(187, 134, 252, 0.4);
+        }
+
+        /* Indicator Dot */
+        .indicator-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--secondary);
+            box-shadow: 0 0 5px var(--secondary);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .nav-item.notification .indicator-dot {
+            opacity: 1;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            .app-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- App Container -->
+    <div class="app-container">
+        <!-- Page Content -->
+        <div class="page-content">
+            <h1 class="page-title">Nexus Navigation</h1>
+            
+            <div class="card">
+                <h2 class="card-title">Premium Experience</h2>
+                <p class="card-text">This advanced bottom navigation features fluid animations, gradient accents, and intuitive interactions designed for modern mobile apps.</p>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Features</h2>
+                <p class="card-text">• Smooth transitions<br>• Ripple effects<br>• Floating action button<br>• Notification indicators<br>• Dark theme optimized</p>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">Try It</h2>
+                <p class="card-text">Tap the different navigation items below to experience the advanced animations and transitions.</p>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <div class="fab" id="fab">
+            <i class="fas fa-plus"></i>
+        </div>
+
+        <!-- Advanced Bottom Navigation -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" data-page="home">
+                <div class="nav-icon">
+                    <i class="fas fa-home"></i>
+                    <div class="indicator-dot"></div>
+                </div>
+                <span class="nav-label">Home</span>
+            </a>
+            
+            <a href="#" class="nav-item" data-page="explore">
+                <div class="nav-icon">
+                    <i class="fas fa-compass"></i>
+                </div>
+                <span class="nav-label">Explore</span>
+            </a>
+            
+            <a href="#" class="nav-item" data-page="favorites">
+                <div class="nav-icon">
+                    <i class="fas fa-heart"></i>
+                    <div class="indicator-dot"></div>
+                </div>
+                <span class="nav-label">Favorites</span>
+            </a>
+            
+            <a href="#" class="nav-item notification" data-page="notifications">
+                <div class="nav-icon">
+                    <i class="fas fa-bell"></i>
+                    <div class="indicator-dot"></div>
+                </div>
+                <span class="nav-label">Alerts</span>
+            </a>
+            
+            <a href="#" class="nav-item" data-page="profile">
+                <div class="nav-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <span class="nav-label">Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        // DOM Elements
+        const navItems = document.querySelectorAll('.nav-item');
+        const pageContent = document.querySelector('.page-content');
+        const fab = document.getElementById('fab');
+
+        // Page content templates
+        const pages = {
+            home: `
+                <h1 class="page-title">Home</h1>
+                <div class="card">
+                    <h2 class="card-title">Welcome Back</h2>
+                    <p class="card-text">You're viewing the home screen with the active navigation item highlighted.</p>
+                </div>
+                <div class="card">
+                    <h2 class="card-title">Recent Activity</h2>
+                    <p class="card-text">The bottom navigation remains accessible while you browse content.</p>
+                </div>
+            `,
+            explore: `
+                <h1 class="page-title">Explore</h1>
+                <div class="card">
+                    <h2 class="card-title">Discover</h2>
+                    <p class="card-text">Find new content and features throughout the app.</p>
+                </div>
+                <div class="card">
+                    <h2 class="card-title">Categories</h2>
+                    <p class="card-text">Browse through different content categories.</p>
+                </div>
+            `,
+            favorites: `
+                <h1 class="page-title">Favorites</h1>
+                <div class="card">
+                    <h2 class="card-title">Saved Items</h2>
+                    <p class="card-text">Your bookmarked and liked content appears here.</p>
+                </div>
+            `,
+            notifications: `
+                <h1 class="page-title">Alerts</h1>
+                <div class="card">
+                    <h2 class="card-title">New Notifications</h2>
+                    <p class="card-text">You have 3 unread messages.</p>
+                </div>
+                <div class="card">
+                    <h2 class="card-title">Recent</h2>
+                    <p class="card-text">The notification indicator dot disappears when viewed.</p>
+                </div>
+            `,
+            profile: `
+                <h1 class="page-title">Profile</h1>
+                <div class="card">
+                    <h2 class="card-title">Account Settings</h2>
+                    <p class="card-text">Manage your preferences and personal information.</p>
+                </div>
+            `
+        };
+
+        // Create ripple effect
+        function createRipple(event) {
+            const navItem = event.currentTarget;
+            const navIcon = navItem.querySelector('.nav-icon');
+            
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            
+            const diameter = Math.max(navIcon.clientWidth, navIcon.clientHeight);
+            const radius = diameter / 2;
+            
+            ripple.style.width = ripple.style.height = `${diameter}px`;
+            ripple.style.left = `${event.clientX - navIcon.getBoundingClientRect().left - radius}px`;
+            ripple.style.top = `${event.clientY - navIcon.getBoundingClientRect().top - radius}px`;
+            
+            navIcon.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+
+        // Change page
+        function changePage(page) {
+            // Update content with animation
+            pageContent.style.animation = 'none';
+            void pageContent.offsetWidth; // Trigger reflow
+            pageContent.style.animation = 'fadeIn 0.5s ease-out';
+            
+            pageContent.innerHTML = pages[page];
+            
+            // Update nav items
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === page) {
+                    item.classList.add('active');
+                    
+                    // Clear notification indicator if it's the notifications page
+                    if (page === 'notifications') {
+                        item.classList.remove('notification');
+                    }
+                }
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation items
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    createRipple(e);
+                    changePage(item.dataset.page);
+                });
+            });
+            
+            // Floating action button
+            fab.addEventListener('click', () => {
+                // Create ripple effect
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple');
+                ripple.style.backgroundColor = 'rgba(3, 218, 198, 0.3)';
+                
+                const diameter = Math.max(fab.clientWidth, fab.clientHeight);
+                const radius = diameter / 2;
+                
+                ripple.style.width = ripple.style.height = `${diameter}px`;
+                ripple.style.left = `${radius - radius}px`;
+                ripple.style.top = `${radius - radius}px`;
+                
+                fab.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+                
+                // Show action
+                pageContent.innerHTML = `
+                    <h1 class="page-title">New Action</h1>
+                    <div class="card">
+                        <h2 class="card-title">FAB Pressed</h2>
+                        <p class="card-text">The floating action button triggers special actions like creating new content.</p>
+                    </div>
+                `;
+            });
+        }
+
+        // Initialize the navigation
+        setupEventListeners();
+    </script>
+</body>
+</html>
